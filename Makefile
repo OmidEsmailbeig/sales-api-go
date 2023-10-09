@@ -30,6 +30,13 @@ service:
 run:
 	go run main.go
 
+# ==============================================================================
+# Modules support
+
+tidy:
+	go mod tidy
+	go mod vendor
+
 # ============================================================================
 # Running from within k8s/kind
 
@@ -44,12 +51,14 @@ kind-load:
 	kind load docker-image $(SERVICE_IMAGE):$(VERSION) --name $(KIND_CLUSTER)
 
 kind-apply:
-	cat configs/k8s/kind/base/service-pod/base-service.yaml | kubectl apply -f -
+	kustomize build configs/k8s/kind/service-pod | kubectl apply -f -
 
 kind-restart:
 	kubectl rollout restart deployment $(DEPLOYMENT)
 
-kind-update: service kind-load kind-restart
+kind-update: all kind-load kind-restart
+
+kind-update-apply: all kind-load kind-apply
 
 kind-status:
 	kubectl get nodes -o wide
