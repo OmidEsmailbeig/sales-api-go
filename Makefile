@@ -4,21 +4,21 @@ SHELL := /bin/bash
 # Define Settings
 
 VERSION := 1.0
-SERVICE_IMAGE := service-amd64
-APP := service
-NAMESPACE := service-system
+SERVICE_IMAGE := sales-api-amd64
+APP := sales
+NAMESPACE := sales-system
 KIND := kindest/node:v1.28.0
-KIND_CLUSTER := service-starter-cluster
-DEPLOYMENT := service-pod
+KIND_CLUSTER := sales-starter-cluster
+DEPLOYMENT := sales-pod
 
 # ============================================================================
 # Building containers
 
-all: service
+all: sales-api
 
-service:
+sales-api:
 	docker build \
-		-f configs/docker/Dockerfile \
+		-f configs/docker/dockerfile.sales-api \
 		-t $(SERVICE_IMAGE):$(VERSION) \
 		--build-arg BUILD_REF=$(VERSION) \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
@@ -48,10 +48,11 @@ kind-up:
 	kubectl config set-context --current --namespace=$(NAMESPACE)
 
 kind-load:
+	cd configs/k8s/kind/sales-pod; kustomize edit set image sales-api-image=$(SERVICE_IMAGE):$(VERSION)
 	kind load docker-image $(SERVICE_IMAGE):$(VERSION) --name $(KIND_CLUSTER)
 
 kind-apply:
-	kustomize build configs/k8s/kind/service-pod | kubectl apply -f -
+	kustomize build configs/k8s/kind/sales-pod | kubectl apply -f -
 
 kind-restart:
 	kubectl rollout restart deployment $(DEPLOYMENT)
@@ -65,7 +66,7 @@ kind-status:
 	kubectl get svc -o wide
 	kubectl get pods -o wide --watch --all-namespaces
 
-kind-status-server:
+kind-status-sales:
 	kubectl get pods -o wide --watch
 
 kind-logs:
