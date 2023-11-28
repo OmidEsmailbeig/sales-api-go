@@ -28,7 +28,7 @@ sales-api:
 # Running the app
 
 run:
-	go run main.go
+	go run app/services/sales-api/main.go | go run app/tooling/logfmt/main.go
 
 # ==============================================================================
 # Modules support
@@ -70,7 +70,7 @@ kind-status-sales:
 	kubectl get pods -o wide --watch
 
 kind-logs:
-	kubectl logs -l app=$(APP) --all-containers=true -f --tail=100
+	kubectl logs -l app=$(APP) --all-containers=true -f --tail=100 | go run app/tooling/logfmt/main.go
 
 kind-describe:
 	kubectl describe pod -l app=$(APP)
